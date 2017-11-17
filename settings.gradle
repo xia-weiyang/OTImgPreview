@@ -1,1 +1,1 @@
-include ':app', ':imgprewview'
+include ':sample', ':imgprewview'

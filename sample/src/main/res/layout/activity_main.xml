@@ -27,7 +27,7 @@
             android:id="@+id/btn2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="可以删除，可以保存的图片"/>
+            android:text="长按可以删除，可以保存的图片"/>
 
     </LinearLayout>
 

@@ -1,4 +1,4 @@
-package com.jiushig.imgprewview;
+package com.jiushig.sample;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.jiushig.imgprewview.test", appContext.getPackageName());
+        assertEquals("com.jiushig.otimgpreview", appContext.getPackageName());
     }
 }

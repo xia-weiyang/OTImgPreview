@@ -1,4 +1,4 @@
-package com.jiushig.otimgpreview;
+package com.jiushig.sample;
 
 import org.junit.Test;
 

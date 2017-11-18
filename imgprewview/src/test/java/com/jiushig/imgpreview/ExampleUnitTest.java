@@ -1,4 +1,4 @@
-package com.jiushig.imgprewview;
+package com.jiushig.imgpreview;
 
 import org.junit.Test;
 

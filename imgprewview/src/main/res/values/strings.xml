@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">ImgPrewview</string>
+
+    <string name="img_delete">删除</string>
+    <string name="img_save">保存</string>
+    <string name="img_empty">没有要打开的图片</string>
+
+    <string name="img_save_success">保存成功</string>
+    <string name="img_save_fail">保存失败</string>
+
+    <string name="tip_img_save">长按可以保存图片哦。</string>
+    <string name="tip_img_del">长按可以删除图片哦。</string>
+
+    <string name="i_know">我知道了</string>
 </resources>

@@ -13,8 +13,14 @@ public class ImageBuilder {
 
     private Activity activity;
 
+    public static final int MODEL_SAVE = 0x1;   // 保存
+    public static final int MODEL_DELETE = 0x2;   // 删除
+
     private String[] urls;
     private String currentUrl;
+    private String savePath;
+
+    private int model;
 
     public ImageBuilder(Activity activity) {
         this.activity = activity;
@@ -25,20 +31,30 @@ public class ImageBuilder {
         return this;
     }
 
-    public ImageBuilder setCurrentUrl(String currentUrl){
+    public ImageBuilder setCurrentUrl(String currentUrl) {
         this.currentUrl = currentUrl;
+        return this;
+    }
+
+    public ImageBuilder setModel(int model) {
+        this.model = model;
+        return this;
+    }
+
+    public ImageBuilder setSavePath(String savePath) {
+        this.savePath = savePath;
         return this;
     }
 
     public void start() {
         if (urls == null || urls.length <= 0) {
-            Toast.makeText(activity, "没有要打开的图片", Toast.LENGTH_LONG).show();
+            Toast.makeText(activity, R.string.img_empty, Toast.LENGTH_LONG).show();
             return;
         }
 
         if (currentUrl == null || currentUrl.isEmpty()) {
             currentUrl = urls[0];
         }
-        ImageActivity.start(activity, urls, currentUrl);
+        ImageActivity.start(activity, urls, currentUrl, model, savePath);
     }
 }

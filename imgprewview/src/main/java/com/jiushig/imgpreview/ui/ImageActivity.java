@@ -5,11 +5,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
@@ -29,6 +31,7 @@ import com.jiushig.imgpreview.ImageBuilder;
 import com.jiushig.imgpreview.R;
 import com.jiushig.imgpreview.adapter.ViewPageAdapter;
 import com.jiushig.imgpreview.utils.FileUtil;
+import com.jiushig.imgpreview.utils.Permission;
 import com.jiushig.imgpreview.widget.CustomViewPage;
 import com.jiushig.imgpreview.widget.PinchImageView;
 
@@ -49,6 +52,7 @@ public class ImageActivity extends AppCompatActivity {
     private CustomViewPage viewPager;
     private ViewPageAdapter adapter;
     private ArrayList<View> views;
+    private PinchImageView currentSaveImg;
 
     private int currentModel;
     private String savePath;
@@ -108,6 +112,18 @@ public class ImageActivity extends AppCompatActivity {
         });
 
         showTip();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == Permission.REQUEST_EXTERNAL_STORAGE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                saveImg(savePath);
+            } else {
+                Toast.makeText(this, R.string.storage_permission_fail, Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     /**
@@ -234,7 +250,8 @@ public class ImageActivity extends AppCompatActivity {
                             new AlertDialog.Builder(ImageActivity.this)
                                     .setItems(strs, (DialogInterface dialog, int which) -> {
                                         if (getString(R.string.img_save).equals(strs[which])) {
-                                            saveImg(img, savePath);
+                                            currentSaveImg = img;
+                                            saveImg(savePath);
                                         } else if (getString(R.string.img_delete).equals(strs[which])) {
                                             deleteUrls += url + ",";
                                             views.remove(view);
@@ -274,8 +291,14 @@ public class ImageActivity extends AppCompatActivity {
         return str.split(",");
     }
 
-    private void saveImg(ImageView imageView, String path) {
-        boolean result = FileUtil.saveImageToGallery(this, path, ((BitmapDrawable) imageView.getDrawable()).getBitmap());
+    private void saveImg(String path) {
+        if (currentSaveImg == null)
+            return;
+
+        if (!Permission.storage(this))
+            return;
+
+        boolean result = FileUtil.saveImageToGallery(this, path, ((BitmapDrawable) currentSaveImg.getDrawable()).getBitmap());
         Toast.makeText(this, result ? getText(R.string.img_save_success) + "(" + path + ")" : getText(R.string.img_save_fail), Toast.LENGTH_LONG).show();
     }
 

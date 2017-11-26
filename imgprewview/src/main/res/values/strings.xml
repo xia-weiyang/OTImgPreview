@@ -7,6 +7,7 @@
 
     <string name="img_save_success">保存成功</string>
     <string name="img_save_fail">保存失败</string>
+    <string name="storage_permission_fail">获取SD卡读写权限失败</string>
 
     <string name="tip_img_save">长按可以保存图片哦。</string>
     <string name="tip_img_del">长按可以删除图片哦。</string>

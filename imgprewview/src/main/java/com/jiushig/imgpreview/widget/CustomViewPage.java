@@ -52,13 +52,13 @@ public class CustomViewPage extends ViewPager implements PinchImageView.OuterTou
             if (Math.abs(moveX) > Math.abs(moveY)) {
                 switch (imageStatus) {
                     case PinchImageView.IMG_STATUS_ENLARGE_EDGE_LEFT:
-                        // 除5是为了判断 滑动的是不是一条横向的直线
-                        if (moveX > 0 && Math.abs(moveX) / 5 > Math.abs(moveY))
+//                         除7是为了判断 滑动的是不是一条横向的直线
+                        if (moveX > 0 && Math.abs(moveX) / 7 > Math.abs(moveY) && Math.abs(moveX) < (getWidth() / 4))
                             return true;
                         else
                             return false;
                     case PinchImageView.IMG_STATUS_ENLARGE_EDGE_RIGHT:
-                        if (moveX < 0 && Math.abs(moveX) / 5 > Math.abs(moveY))
+                        if (moveX < 0 && Math.abs(moveX) / 7 > Math.abs(moveY) && Math.abs(moveX) < (getWidth() / 4))
                             return true;
                         else
                             return false;

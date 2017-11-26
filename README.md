@@ -5,9 +5,8 @@ Android 多图预览
 For [旧时光](http://jiushig.com)
 
 ## Screenshot 
-<img src="./img/Screenshot_1511687204.png" style="width:'100px'"/>  
-<img src="./img/Screenshot_1511687252.png" style="width:'100px'"/>   
-<img src="./img/Screenshot_1511686626.png" style="width:'100px'"/>  
+![](./img/Screenshot_1511687204.png){:width="200px"}  
+![](./img/Screenshot_1511687252.png){:width="200px"}  
 
 
 ## Setup

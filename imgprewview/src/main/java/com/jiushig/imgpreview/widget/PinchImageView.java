@@ -9,10 +9,11 @@ import android.graphics.PointF;
 import android.graphics.RectF;
 import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 
+
+import com.jiushig.imgpreview.utils.Log;
 
 import java.util.ArrayList;
 import java.util.LinkedList;

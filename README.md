@@ -25,7 +25,7 @@ allprojects {
 Add the dependency
 ```gradle
 dependencies {
-        compile 'com.github.xia-weiyang:OTImgPreview:1.0'
+        compile 'com.github.otjiushig:OTImgPreview:1.0.Release'
 }
 ```
 

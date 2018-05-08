@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -26,6 +27,8 @@ import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
+import com.davemorrissey.labs.subscaleview.ImageSource;
+import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView;
 import com.jiushig.imgpreview.ImageBuilder;
 import com.jiushig.imgpreview.R;
 import com.jiushig.imgpreview.adapter.ViewPageAdapter;
@@ -34,6 +37,7 @@ import com.jiushig.imgpreview.utils.Permission;
 import com.jiushig.imgpreview.widget.CustomViewPage;
 import com.jiushig.imgpreview.widget.PinchImageView;
 
+import java.io.File;
 import java.util.ArrayList;
 
 /**
@@ -51,7 +55,8 @@ public class ImageActivity extends AppCompatActivity {
     private CustomViewPage viewPager;
     private ViewPageAdapter adapter;
     private ArrayList<View> views;
-    private PinchImageView currentSaveImg;
+    private SubsamplingScaleImageView currentSaveImg;
+    private File currentFile;
 
     private int currentModel;
     private String savePath;
@@ -159,10 +164,10 @@ public class ImageActivity extends AppCompatActivity {
      */
     private void resetPinchImageView(int position) {
         if (position + 1 < views.size()) {
-            getPinchImageView(views.get(position + 1)).reset();
+            getPinchImageView(views.get(position + 1)).resetScaleAndCenter();
         }
         if (position - 1 >= 0) {
-            getPinchImageView(views.get(position - 1)).reset();
+            getPinchImageView(views.get(position - 1)).resetScaleAndCenter();
         }
     }
 
@@ -213,8 +218,8 @@ public class ImageActivity extends AppCompatActivity {
      * @param view
      * @return
      */
-    private PinchImageView getPinchImageView(View view) {
-        return (PinchImageView) view.findViewById(R.id.image);
+    private SubsamplingScaleImageView getPinchImageView(View view) {
+        return (SubsamplingScaleImageView) view.findViewById(R.id.image);
     }
 
     /**
@@ -224,46 +229,85 @@ public class ImageActivity extends AppCompatActivity {
      * @param url
      */
     private void loadImage(View view, String url) {
-        final PinchImageView img = (PinchImageView) view.findViewById(R.id.image);
+        final SubsamplingScaleImageView img = (SubsamplingScaleImageView) view.findViewById(R.id.image);
         final ProgressBar progressBar = (ProgressBar) view.findViewById(R.id.progressBar);
+        img.setMinScale(1.0F);//最小显示比例
+        img.setMaxScale(10.0F);//最大显示比例（太大了图片显示会失真，因为一般微博长图的宽度不会太宽）
 
-        Glide.with(this)
-                .load(url)
-                .listener(new RequestListener<Drawable>() {
-                    @Override
-                    public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                        return false;
-                    }
+        Glide.with(this).downloadOnly().load(url).listener(new RequestListener<File>() {
+            @Override
+            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<File> target, boolean isFirstResource) {
+                Toast.makeText(ImageActivity.this, "图片加载失败", Toast.LENGTH_SHORT).show();
+                return false;
+            }
 
-                    @Override
-                    public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                        progressBar.setVisibility(View.GONE);
-                        img.setVisibility(View.VISIBLE);
-                        img.addOuterTouchOverListener(viewPager);
-                        img.setOnClickListener(v -> finish());
-                        img.setOnLongClickListener(v -> {
-                            String[] strs = getItems();
-                            if (strs == null)
-                                return false;
-
-                            new AlertDialog.Builder(ImageActivity.this)
-                                    .setItems(strs, (DialogInterface dialog, int which) -> {
-                                        if (getString(R.string.img_save).equals(strs[which])) {
-                                            currentSaveImg = img;
-                                            saveImg(savePath);
-                                        } else if (getString(R.string.img_delete).equals(strs[which])) {
-                                            deleteUrls += url + ",";
-                                            views.remove(view);
-                                            viewPager.getAdapter().notifyDataSetChanged();
-                                        }
-                                    }).show();
-                            return false;
-                        });
+            @Override
+            public boolean onResourceReady(File resource, Object model, Target<File> target, DataSource dataSource, boolean isFirstResource) {
+                ImageActivity.this.currentFile = resource;
+                progressBar.setVisibility(View.GONE);
+                img.setVisibility(View.VISIBLE);
+                //img.addOuterTouchOverListener(viewPager);
+                img.setImage(ImageSource.uri(Uri.fromFile(resource)));
+                img.setOnClickListener(v -> finish());
+                img.setOnLongClickListener(v -> {
+                    String[] strs = getItems();
+                    if (strs == null)
                         return false;
 
-                    }
-                })
-                .into(img);
+                    new AlertDialog.Builder(ImageActivity.this)
+                            .setItems(strs, (DialogInterface dialog, int which) -> {
+                                if (getString(R.string.img_save).equals(strs[which])) {
+                                    currentSaveImg = img;
+                                    saveImg(savePath);
+                                } else if (getString(R.string.img_delete).equals(strs[which])) {
+                                    deleteUrls += url + ",";
+                                    views.remove(view);
+                                    viewPager.getAdapter().notifyDataSetChanged();
+                                }
+                            }).show();
+                    return false;
+                });
+                return false;
+            }
+        }).submit();
+
+//        Glide.with(this)
+//                .load(url)
+//                .listener(new RequestListener<Drawable>() {
+//                    @Override
+//                    public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+//                        return false;
+//                    }
+//
+//                    @Override
+//                    public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+//                        progressBar.setVisibility(View.GONE);
+//                        img.setVisibility(View.VISIBLE);
+//                        //img.addOuterTouchOverListener(viewPager);
+//                        img.setOnClickListener(v -> finish());
+//                        img.setOnLongClickListener(v -> {
+//                            String[] strs = getItems();
+//                            if (strs == null)
+//                                return false;
+//
+//                            new AlertDialog.Builder(ImageActivity.this)
+//                                    .setItems(strs, (DialogInterface dialog, int which) -> {
+//                                        if (getString(R.string.img_save).equals(strs[which])) {
+//                                            currentSaveImg = img;
+//                                            saveImg(savePath);
+//                                        } else if (getString(R.string.img_delete).equals(strs[which])) {
+//                                            deleteUrls += url + ",";
+//                                            views.remove(view);
+//                                            viewPager.getAdapter().notifyDataSetChanged();
+//                                        }
+//                                    }).show();
+//                            return false;
+//                        });
+//                        return false;
+//
+//                    }
+//                })
+//                .into(img);
     }
 
     @Override
@@ -297,7 +341,7 @@ public class ImageActivity extends AppCompatActivity {
         if (!Permission.storage(this))
             return;
 
-        boolean result = FileUtil.saveImageToGallery(this, path, ((BitmapDrawable) currentSaveImg.getDrawable()).getBitmap());
+        boolean result = FileUtil.saveImageToGallery(this, path, currentFile);
         Toast.makeText(this, result ? getText(R.string.img_save_success) + "(" + path + ")" : getText(R.string.img_save_fail), Toast.LENGTH_LONG).show();
     }
 

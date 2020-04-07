@@ -25,8 +25,8 @@ allprojects {
 Add the dependency
 ```gradle
 dependencies {
-        implementation 'com.davemorrissey.labs:subsampling-scale-image-view:3.10.0'
-        implementation 'com.github.otjiushig:OTImgPreview:1.1.Release'
+        implementation 'com.github.chrisbanes:PhotoView:2.0.0'
+        implementation 'com.github.otjiushig:OTImgPreview:1.2.3'
 }
 ```
 
@@ -41,9 +41,6 @@ new ImageBuilder(activity)
 ```
 
 Look at the sample app for more.
-
-### Thanks
-- [https://github.com/davemorrissey/subsampling-scale-image-view](https://github.com/davemorrissey/subsampling-scale-image-view)
 
 # License
 

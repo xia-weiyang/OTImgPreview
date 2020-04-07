@@ -2,12 +2,12 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/OTImgPreview.iml" filepath="$PROJECT_DIR$/OTImgPreview.iml" />
-      <module fileurl="file://C:\develop\android\OTImgPreview\OTImgPreview.iml" filepath="C:\develop\android\OTImgPreview\OTImgPreview.iml" />
+      <module fileurl="file://C:/develop/android/OTImgPreview/OTImgPreview.iml" filepath="C:/develop/android/OTImgPreview/OTImgPreview.iml" />
+      <module fileurl="file://$PROJECT_DIR$/imgprewview/OTImgPreview-imgprewview.iml" filepath="$PROJECT_DIR$/imgprewview/OTImgPreview-imgprewview.iml" group="OTImgPreview/imgprewview" />
+      <module fileurl="file://$PROJECT_DIR$/sample/OTImgPreview-sample.iml" filepath="$PROJECT_DIR$/sample/OTImgPreview-sample.iml" group="OTImgPreview/sample" />
       <module fileurl="file://$PROJECT_DIR$/imgprewview/imgprewview.iml" filepath="$PROJECT_DIR$/imgprewview/imgprewview.iml" />
-      <module fileurl="file://C:\develop\android\OTImgPreview\imgprewview\imgprewview.iml" filepath="C:\develop\android\OTImgPreview\imgprewview\imgprewview.iml" />
-      <module fileurl="file://$PROJECT_DIR$/sample/sample.iml" filepath="$PROJECT_DIR$/sample/sample.iml" />
-      <module fileurl="file://C:\develop\android\OTImgPreview\sample\sample.iml" filepath="C:\develop\android\OTImgPreview\sample\sample.iml" />
+      <module fileurl="file://$PROJECT_DIR$/projects-OTImgPreview.iml" filepath="$PROJECT_DIR$/projects-OTImgPreview.iml" group="OTImgPreview" />
+      <module fileurl="file://C:/develop/android/OTImgPreview/sample/sample.iml" filepath="C:/develop/android/OTImgPreview/sample/sample.iml" />
     </modules>
   </component>
 </project>

@@ -10,11 +10,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -36,6 +31,12 @@ import com.jiushig.imgpreview.widget.CustomViewPage;
 
 import java.io.File;
 import java.util.ArrayList;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager.widget.ViewPager;
 
 /**
  * Created by Guowang on 2017/2/6.
@@ -202,8 +203,9 @@ public class ImageActivity extends AppCompatActivity {
             for (String url : urls) {
                 View view = layoutInflater.inflate(R.layout.pinch_image, null);
                 loadImage(view, url);
+                final SubsamplingScaleImageView img = view.findViewById(R.id.image);
+                img.setOnClickListener(view1 -> finish());
                 views.add(view);
-                view.findViewById(R.id.image).setOnClickListener(view1 -> finish());
             }
         }
         return views;
@@ -245,7 +247,6 @@ public class ImageActivity extends AppCompatActivity {
                 img.setVisibility(View.VISIBLE);
                 //img.addOuterTouchOverListener(viewPager);
                 img.setImage(ImageSource.uri(Uri.fromFile(resource)));
-                img.setOnClickListener(v -> finish());
                 img.setOnLongClickListener(v -> {
                     String[] strs = getItems();
                     if (strs == null)

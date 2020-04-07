@@ -6,8 +6,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -35,7 +33,6 @@ import com.jiushig.imgpreview.adapter.ViewPageAdapter;
 import com.jiushig.imgpreview.utils.FileUtil;
 import com.jiushig.imgpreview.utils.Permission;
 import com.jiushig.imgpreview.widget.CustomViewPage;
-import com.jiushig.imgpreview.widget.PinchImageView;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -206,7 +203,7 @@ public class ImageActivity extends AppCompatActivity {
                 View view = layoutInflater.inflate(R.layout.pinch_image, null);
                 loadImage(view, url);
                 views.add(view);
-                view.setOnClickListener(v -> finish());
+                view.findViewById(R.id.image).setOnClickListener(view1 -> finish());
             }
         }
         return views;

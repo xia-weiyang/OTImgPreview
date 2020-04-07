@@ -20,8 +20,7 @@ import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
-import com.davemorrissey.labs.subscaleview.ImageSource;
-import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView;
+import com.github.chrisbanes.photoview.PhotoView;
 import com.jiushig.imgpreview.ImageBuilder;
 import com.jiushig.imgpreview.R;
 import com.jiushig.imgpreview.adapter.ViewPageAdapter;
@@ -53,7 +52,7 @@ public class ImageActivity extends AppCompatActivity {
     private CustomViewPage viewPager;
     private ViewPageAdapter adapter;
     private ArrayList<View> views;
-    private SubsamplingScaleImageView currentSaveImg;
+    private PhotoView currentSaveImg;
     private File currentFile;
 
     private int currentModel;
@@ -69,7 +68,8 @@ public class ImageActivity extends AppCompatActivity {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            resetPinchImageView(msg.what);
+//            resetPinchImageView(msg.what);
+            // 重置放大缩小
         }
     };
 
@@ -160,14 +160,14 @@ public class ImageActivity extends AppCompatActivity {
      *
      * @param position
      */
-    private void resetPinchImageView(int position) {
-        if (position + 1 < views.size()) {
-            getPinchImageView(views.get(position + 1)).resetScaleAndCenter();
-        }
-        if (position - 1 >= 0) {
-            getPinchImageView(views.get(position - 1)).resetScaleAndCenter();
-        }
-    }
+//    private void resetPinchImageView(int position) {
+//        if (position + 1 < views.size()) {
+//            getPinchImageView(views.get(position + 1)).resetScaleAndCenter();
+//        }
+//        if (position - 1 >= 0) {
+//            getPinchImageView(views.get(position - 1)).resetScaleAndCenter();
+//        }
+//    }
 
     /**
      * 得到当前需要展示的图片的Item
@@ -203,22 +203,12 @@ public class ImageActivity extends AppCompatActivity {
             for (String url : urls) {
                 View view = layoutInflater.inflate(R.layout.pinch_image, null);
                 loadImage(view, url);
-                final SubsamplingScaleImageView img = view.findViewById(R.id.image);
+                final PhotoView img = view.findViewById(R.id.image);
                 img.setOnClickListener(view1 -> finish());
                 views.add(view);
             }
         }
         return views;
-    }
-
-    /**
-     * 通过View得到PinchImageView对象
-     *
-     * @param view
-     * @return
-     */
-    private SubsamplingScaleImageView getPinchImageView(View view) {
-        return (SubsamplingScaleImageView) view.findViewById(R.id.image);
     }
 
     /**
@@ -228,10 +218,10 @@ public class ImageActivity extends AppCompatActivity {
      * @param url
      */
     private void loadImage(View view, String url) {
-        final SubsamplingScaleImageView img = (SubsamplingScaleImageView) view.findViewById(R.id.image);
+        final PhotoView img = (PhotoView) view.findViewById(R.id.image);
         final ProgressBar progressBar = (ProgressBar) view.findViewById(R.id.progressBar);
-        img.setMinScale(1.0F);//最小显示比例
-        img.setMaxScale(10.0F);//最大显示比例（太大了图片显示会失真，因为一般微博长图的宽度不会太宽）
+//        img.setMinScale(1.0F);//最小显示比例
+//        img.setMaxScale(10.0F);//最大显示比例（太大了图片显示会失真，因为一般微博长图的宽度不会太宽）
 
         Glide.with(this).downloadOnly().load(url).listener(new RequestListener<File>() {
             @Override
@@ -245,8 +235,7 @@ public class ImageActivity extends AppCompatActivity {
                 ImageActivity.this.currentFile = resource;
                 progressBar.setVisibility(View.GONE);
                 img.setVisibility(View.VISIBLE);
-                //img.addOuterTouchOverListener(viewPager);
-                img.setImage(ImageSource.uri(Uri.fromFile(resource)));
+                img.setImageURI(Uri.fromFile(resource));
                 img.setOnLongClickListener(v -> {
                     String[] strs = getItems();
                     if (strs == null)

@@ -26,7 +26,7 @@ Add the dependency
 ```gradle
 dependencies {
         implementation 'com.github.chrisbanes:PhotoView:2.0.0'
-        implementation 'com.github.otjiushig:OTImgPreview:1.2.3'
+        implementation 'com.github.otjiushig:OTImgPreview:1.2.4'
 }
 ```
 

@@ -233,26 +233,29 @@ public class ImageActivity extends AppCompatActivity {
             @Override
             public boolean onResourceReady(File resource, Object model, Target<File> target, DataSource dataSource, boolean isFirstResource) {
                 ImageActivity.this.currentFile = resource;
-                progressBar.setVisibility(View.GONE);
-                img.setVisibility(View.VISIBLE);
-                img.setImageURI(Uri.fromFile(resource));
-                img.setOnLongClickListener(v -> {
-                    String[] strs = getItems();
-                    if (strs == null)
-                        return false;
+                runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    img.setVisibility(View.VISIBLE);
+                    img.setImageURI(Uri.fromFile(resource));
+                    img.setOnLongClickListener(v -> {
+                        String[] strs = getItems();
+                        if (strs == null)
+                            return false;
 
-                    new AlertDialog.Builder(ImageActivity.this)
-                            .setItems(strs, (DialogInterface dialog, int which) -> {
-                                if (getString(R.string.img_save).equals(strs[which])) {
-                                    currentSaveImg = img;
-                                    saveImg(savePath);
-                                } else if (getString(R.string.img_delete).equals(strs[which])) {
-                                    deleteUrls += url + ",";
-                                    views.remove(view);
-                                    viewPager.getAdapter().notifyDataSetChanged();
-                                }
-                            }).show();
-                    return false;
+                        new AlertDialog.Builder(ImageActivity.this)
+                                .setItems(strs, (DialogInterface dialog, int which) -> {
+                                    if (getString(R.string.img_save).equals(strs[which])) {
+                                        currentSaveImg = img;
+                                        saveImg(savePath);
+                                    } else if (getString(R.string.img_delete).equals(strs[which])) {
+                                        deleteUrls += url + ",";
+                                        views.remove(view);
+                                        if (viewPager.getAdapter() != null)
+                                            viewPager.getAdapter().notifyDataSetChanged();
+                                    }
+                                }).show();
+                        return false;
+                    });
                 });
                 return false;
             }

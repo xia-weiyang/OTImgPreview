@@ -13,6 +13,7 @@ import android.os.Message;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -54,6 +55,7 @@ public class ImageActivity extends AppCompatActivity {
     private ArrayList<View> views;
     private PhotoView currentSaveImg;
     private File currentFile;
+    private TextView textIndex;
 
     private int currentModel;
     private String savePath;
@@ -91,6 +93,11 @@ public class ImageActivity extends AppCompatActivity {
         views = getViews(urls);
 
         viewPager = (CustomViewPage) findViewById(R.id.viewPager);
+        textIndex = findViewById(R.id.text_index);
+        textIndex.setVisibility(views.size() > 1 ? View.VISIBLE : View.GONE);
+        if (textIndex.getVisibility() == View.VISIBLE) {
+            textIndex.setText(String.format("%s/%s", 1, views.size()));
+        }
 
         viewPager.setAdapter(adapter = new ViewPageAdapter(this, views));
 
@@ -104,6 +111,7 @@ public class ImageActivity extends AppCompatActivity {
 
             @Override
             public void onPageSelected(int position) {
+                textIndex.setText(String.format("%s/%s", position + 1, views.size()));
                 viewPager.initImageStatus();
                 handler.sendEmptyMessageDelayed(position, 500);
             }

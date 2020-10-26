@@ -6,7 +6,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.net.Uri;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -30,6 +31,8 @@ import com.jiushig.imgpreview.utils.Permission;
 import com.jiushig.imgpreview.widget.CustomViewPage;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
@@ -244,7 +247,16 @@ public class ImageActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
                     img.setVisibility(View.VISIBLE);
-                    img.setImageURI(Uri.fromFile(resource));
+                    try {
+                        InputStream is = new FileInputStream(resource);
+                        BitmapFactory.Options options = new BitmapFactory.Options();
+                        options.inJustDecodeBounds = false;
+                        options.inSampleSize = 1;
+                        Bitmap btp = BitmapFactory.decodeStream(is, null, options);
+                        img.setImageBitmap(btp);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                     img.setOnLongClickListener(v -> {
                         String[] strs = getItems();
                         if (strs == null)

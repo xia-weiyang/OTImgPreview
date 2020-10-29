@@ -12,7 +12,8 @@
 
         <activity
             android:name="com.jiushig.imgpreview.ui.ImageActivity"
-            android:theme="@style/AppTheme.NoActionBar.Fullscreen"/>
+            android:theme="@style/AppTheme.NoActionBar.Fullscreen"
+            android:screenOrientation="portrait"/>
 
 
     </application>

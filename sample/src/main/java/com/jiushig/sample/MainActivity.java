@@ -27,19 +27,19 @@ public class MainActivity extends AppCompatActivity {
 
         findViewById(R.id.btn1).setOnClickListener(v -> {
             new ImageBuilder(this)
-                    .setUrls(new String[]{"http://oss.jiushig.com/content/mood/14/27d6ae9201c24a1897b9cc5fbbd6bbe6.png"
-                            , "http://oss.jiushig.com/content/mood/14/3a919d724f3f40dba512e1157f1f6e99.jpg"
-                            , "http://oss.jiushig.com/content/mood/14/3c5de4250df14c1b96a37f09bcb149c0.jpg"})
-                    .setCurrentUrl("http://oss.jiushig.com/content/mood/14/3a919d724f3f40dba512e1157f1f6e99.jpg")
+                    .setUrls(new String[]{"https://oss.jiushig.com/content/mood/14/27d6ae9201c24a1897b9cc5fbbd6bbe6.png"
+                            , "https://oss.jiushig.com/content/mood/14/3a919d724f3f40dba512e1157f1f6e99.jpg"
+                            , "https://oss.jiushig.com/content/mood/14/3c5de4250df14c1b96a37f09bcb149c0.jpg"})
+                    .setCurrentUrl("https://oss.jiushig.com/content/mood/14/3a919d724f3f40dba512e1157f1f6e99.jpg")
                     .setSavePath("jiushig/img")
                     .start();
         });
 
         findViewById(R.id.btn2).setOnClickListener(v -> {
             new ImageBuilder(this)
-                    .setUrls(new String[]{"http://oss.jiushig.com/content/mood/14/27d6ae9201c24a1897b9cc5fbbd6bbe6.png"
-                            , "http://oss.jiushig.com/content/mood/14/3a919d724f3f40dba512e1157f1f6e99.jpg"
-                            , "http://oss.jiushig.com/content/mood/14/3c5de4250df14c1b96a37f09bcb149c0.jpg"})
+                    .setUrls(new String[]{"https://oss.jiushig.com/content/mood/14/27d6ae9201c24a1897b9cc5fbbd6bbe6.png"
+                            , "https://oss.jiushig.com/content/mood/14/3a919d724f3f40dba512e1157f1f6e99.jpg"
+                            , "https://oss.jiushig.com/content/mood/14/3c5de4250df14c1b96a37f09bcb149c0.jpg"})
                     .setModel(ImageBuilder.MODEL_SAVE | ImageBuilder.MODEL_DELETE)
                     .start();
         });

@@ -56,7 +56,6 @@ public class ImageActivity extends AppCompatActivity {
     private CustomViewPage viewPager;
     private ViewPageAdapter adapter;
     private ArrayList<View> views;
-    private PhotoView currentSaveImg;
     private File currentFile;
     private TextView textIndex;
 
@@ -237,13 +236,14 @@ public class ImageActivity extends AppCompatActivity {
         Glide.with(this).downloadOnly().load(url).listener(new RequestListener<File>() {
             @Override
             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<File> target, boolean isFirstResource) {
-                Toast.makeText(ImageActivity.this, "图片加载失败", Toast.LENGTH_SHORT).show();
+                runOnUiThread(() -> {
+                    Toast.makeText(ImageActivity.this, "图片加载失败", Toast.LENGTH_SHORT).show();
+                });
                 return false;
             }
 
             @Override
             public boolean onResourceReady(File resource, Object model, Target<File> target, DataSource dataSource, boolean isFirstResource) {
-                ImageActivity.this.currentFile = resource;
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
                     img.setVisibility(View.VISIBLE);
@@ -265,7 +265,7 @@ public class ImageActivity extends AppCompatActivity {
                         new AlertDialog.Builder(ImageActivity.this)
                                 .setItems(strs, (DialogInterface dialog, int which) -> {
                                     if (getString(R.string.img_save).equals(strs[which])) {
-                                        currentSaveImg = img;
+                                        ImageActivity.this.currentFile = resource;
                                         saveImg(savePath);
                                     } else if (getString(R.string.img_delete).equals(strs[which])) {
                                         deleteUrls += url + ",";
@@ -345,14 +345,19 @@ public class ImageActivity extends AppCompatActivity {
     }
 
     private void saveImg(String path) {
-        if (currentSaveImg == null)
+        if (currentFile == null)
             return;
 
         if (!Permission.storage(this))
             return;
 
-        boolean result = FileUtil.saveImageToGallery(this, path, currentFile);
-        Toast.makeText(this, result ? getText(R.string.img_save_success) + "(" + path + ")" : getText(R.string.img_save_fail), Toast.LENGTH_LONG).show();
+        try {
+            boolean result = FileUtil.saveImageToGallery(this, path, currentFile);
+            Toast.makeText(this, result ? getText(R.string.img_save_success) : getText(R.string.img_save_fail), Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, getText(R.string.img_save_fail), Toast.LENGTH_LONG).show();
+        }
     }
 
     /**

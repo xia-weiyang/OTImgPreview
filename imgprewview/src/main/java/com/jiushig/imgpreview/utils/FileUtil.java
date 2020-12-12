@@ -1,7 +1,11 @@
 package com.jiushig.imgpreview.utils;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 
@@ -95,7 +99,15 @@ public class FileUtil {
         try {
             MediaStore.Images.Media.insertImage(context.getContentResolver(),
                     file.getAbsolutePath(), fileName, null);
-        } catch (FileNotFoundException e) {
+
+
+            // 最后通知图库更新
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) { // 判断SDK版本是不是4.4或者高于4.4
+                String[] paths = new String[]{file.getAbsolutePath()};
+                MediaScannerConnection.scanFile(context, paths, null, null);
+            }
+
+        } catch (Exception e) {
             Log.e(TAG, e.getMessage(), e);
         }
 

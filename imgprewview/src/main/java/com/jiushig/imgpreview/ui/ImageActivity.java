@@ -11,6 +11,7 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -18,6 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.RequestBuilder;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
@@ -27,6 +29,7 @@ import com.jiushig.imgpreview.ImageBuilder;
 import com.jiushig.imgpreview.R;
 import com.jiushig.imgpreview.adapter.ViewPageAdapter;
 import com.jiushig.imgpreview.utils.FileUtil;
+import com.jiushig.imgpreview.utils.IntentMap;
 import com.jiushig.imgpreview.utils.Permission;
 import com.jiushig.imgpreview.widget.CustomViewPage;
 
@@ -84,8 +87,8 @@ public class ImageActivity extends AppCompatActivity {
 
         preferences = getSharedPreferences("otimg", Context.MODE_PRIVATE);
 
-        String[] urls = getIntent().getStringArrayExtra(URLS);
-        String currentUrl = getIntent().getStringExtra(CURRENT_URL);
+        String[] urls = (String[]) IntentMap.get(getIntent().getStringExtra(URLS));
+        String currentUrl = (String) IntentMap.get(getIntent().getStringExtra(CURRENT_URL));
         currentModel = getIntent().getIntExtra(CURRENT_MODEL, 0);
         savePath = getIntent().getStringExtra(PATH);
         if (savePath == null || savePath.isEmpty()) {
@@ -233,53 +236,68 @@ public class ImageActivity extends AppCompatActivity {
 //        img.setMinScale(1.0F);//最小显示比例
 //        img.setMaxScale(10.0F);//最大显示比例（太大了图片显示会失真，因为一般微博长图的宽度不会太宽）
 
-        Glide.with(this).downloadOnly().load(url).listener(new RequestListener<File>() {
-            @Override
-            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<File> target, boolean isFirstResource) {
-                runOnUiThread(() -> {
-                    Toast.makeText(ImageActivity.this, "图片加载失败", Toast.LENGTH_SHORT).show();
-                });
-                return false;
+        RequestBuilder<File> load = null;
+        if (url != null && url.startsWith("data") && url.contains("base64")) {
+            try {
+                url = url.split(",")[1];
+                load = Glide.with(this).downloadOnly().load(Base64.decode(url, Base64.DEFAULT));
+            }catch (Exception e){
+                e.printStackTrace();
             }
+        } else {
+            load = Glide.with(this).downloadOnly().load(url);
+        }
 
-            @Override
-            public boolean onResourceReady(File resource, Object model, Target<File> target, DataSource dataSource, boolean isFirstResource) {
-                runOnUiThread(() -> {
-                    progressBar.setVisibility(View.GONE);
-                    img.setVisibility(View.VISIBLE);
-                    try {
-                        InputStream is = new FileInputStream(resource);
-                        BitmapFactory.Options options = new BitmapFactory.Options();
-                        options.inJustDecodeBounds = false;
-                        options.inSampleSize = 1;
-                        Bitmap btp = BitmapFactory.decodeStream(is, null, options);
-                        img.setImageBitmap(btp);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    img.setOnLongClickListener(v -> {
-                        String[] strs = getItems();
-                        if (strs == null)
-                            return false;
-
-                        new AlertDialog.Builder(ImageActivity.this)
-                                .setItems(strs, (DialogInterface dialog, int which) -> {
-                                    if (getString(R.string.img_save).equals(strs[which])) {
-                                        ImageActivity.this.currentFile = resource;
-                                        saveImg(savePath);
-                                    } else if (getString(R.string.img_delete).equals(strs[which])) {
-                                        deleteUrls += url + ",";
-                                        views.remove(view);
-                                        if (viewPager.getAdapter() != null)
-                                            viewPager.getAdapter().notifyDataSetChanged();
-                                    }
-                                }).show();
-                        return false;
+        if(load != null) {
+            String finalUrl = url;
+            load.listener(new RequestListener<File>() {
+                @Override
+                public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<File> target, boolean isFirstResource) {
+                    runOnUiThread(() -> {
+                        Toast.makeText(ImageActivity.this, "图片加载失败", Toast.LENGTH_SHORT).show();
                     });
-                });
-                return false;
-            }
-        }).submit();
+                    return false;
+                }
+
+                @Override
+                public boolean onResourceReady(File resource, Object model, Target<File> target, DataSource dataSource, boolean isFirstResource) {
+                    runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        img.setVisibility(View.VISIBLE);
+                        try {
+                            InputStream is = new FileInputStream(resource);
+                            BitmapFactory.Options options = new BitmapFactory.Options();
+                            options.inJustDecodeBounds = false;
+                            options.inSampleSize = 1;
+                            Bitmap btp = BitmapFactory.decodeStream(is, null, options);
+                            img.setImageBitmap(btp);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        img.setOnLongClickListener(v -> {
+                            String[] strs = getItems();
+                            if (strs == null)
+                                return false;
+
+                            new AlertDialog.Builder(ImageActivity.this)
+                                    .setItems(strs, (DialogInterface dialog, int which) -> {
+                                        if (getString(R.string.img_save).equals(strs[which])) {
+                                            ImageActivity.this.currentFile = resource;
+                                            saveImg(savePath);
+                                        } else if (getString(R.string.img_delete).equals(strs[which])) {
+                                            deleteUrls += finalUrl + ",";
+                                            views.remove(view);
+                                            if (viewPager.getAdapter() != null)
+                                                viewPager.getAdapter().notifyDataSetChanged();
+                                        }
+                                    }).show();
+                            return false;
+                        });
+                    });
+                    return false;
+                }
+            }).submit();
+        }
 
 //        Glide.with(this)
 //                .load(url)
@@ -370,9 +388,10 @@ public class ImageActivity extends AppCompatActivity {
      * @param url      当前要展示的图片地址
      */
     public static void start(Activity activity, String[] urls, String url, int model, String path) {
+        IntentMap.clear();
         Intent intent = new Intent();
-        intent.putExtra(URLS, urls);
-        intent.putExtra(CURRENT_URL, url);
+        intent.putExtra(URLS, IntentMap.set(urls));
+        intent.putExtra(CURRENT_URL, IntentMap.set(url));
         intent.putExtra(CURRENT_MODEL, model);
         intent.putExtra(PATH, path);
         intent.setClass(activity, ImageActivity.class);

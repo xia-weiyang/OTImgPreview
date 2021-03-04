@@ -89,6 +89,9 @@ public class ImageActivity extends AppCompatActivity {
 
         String[] urls = (String[]) IntentMap.get(getIntent().getStringExtra(URLS));
         String currentUrl = (String) IntentMap.get(getIntent().getStringExtra(CURRENT_URL));
+        if (currentUrl == null) return;
+        if (urls == null) return;
+
         currentModel = getIntent().getIntExtra(CURRENT_MODEL, 0);
         savePath = getIntent().getStringExtra(PATH);
         if (savePath == null || savePath.isEmpty()) {
@@ -97,17 +100,19 @@ public class ImageActivity extends AppCompatActivity {
 
         views = getViews(urls);
 
+        final int currentItem = getCurrentItem(urls, currentUrl);
+
         viewPager = (CustomViewPage) findViewById(R.id.viewPager);
         textIndex = findViewById(R.id.text_index);
         textIndex.setVisibility(views.size() > 1 ? View.VISIBLE : View.GONE);
         if (textIndex.getVisibility() == View.VISIBLE) {
-            textIndex.setText(String.format("%s/%s", 1, views.size()));
+            textIndex.setText(String.format("%s/%s", currentItem + 1, views.size()));
         }
 
         viewPager.setAdapter(adapter = new ViewPageAdapter(this, views));
 
 
-        viewPager.setCurrentItem(getCurrentItem(urls, currentUrl));
+        viewPager.setCurrentItem(currentItem);
 
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -126,7 +131,7 @@ public class ImageActivity extends AppCompatActivity {
             }
         });
 
-        showTip();
+        //showTip();
     }
 
     @Override
@@ -241,14 +246,14 @@ public class ImageActivity extends AppCompatActivity {
             try {
                 url = url.split(",")[1];
                 load = Glide.with(this).downloadOnly().load(Base64.decode(url, Base64.DEFAULT));
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         } else {
             load = Glide.with(this).downloadOnly().load(url);
         }
 
-        if(load != null) {
+        if (load != null) {
             String finalUrl = url;
             load.listener(new RequestListener<File>() {
                 @Override

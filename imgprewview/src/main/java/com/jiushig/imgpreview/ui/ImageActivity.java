@@ -6,12 +6,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -34,9 +33,8 @@ import com.jiushig.imgpreview.utils.Permission;
 import com.jiushig.imgpreview.widget.CustomViewPage;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -54,18 +52,17 @@ public class ImageActivity extends AppCompatActivity {
     private static final String URLS = "urls";
     private static final String CURRENT_URL = "current_url";
     private static final String CURRENT_MODEL = "current_model";
-    private static final String PATH = "path";
+    private static final String TAG = "ImageActivity";
 
     private CustomViewPage viewPager;
-    private ViewPageAdapter adapter;
     private ArrayList<View> views;
     private File currentFile;
     private TextView textIndex;
+    private int currentIndex = 0;
+    private HashMap<Integer, File> fileMap = new HashMap<>();
+    private View btnSave;
 
     private int currentModel;
-    private String savePath;
-
-    private String deleteUrls = "";  // 删除的url
 
     public static final int REQUEST_CODE = 1356;
 
@@ -93,10 +90,6 @@ public class ImageActivity extends AppCompatActivity {
         if (urls == null) return;
 
         currentModel = getIntent().getIntExtra(CURRENT_MODEL, 0);
-        savePath = getIntent().getStringExtra(PATH);
-        if (savePath == null || savePath.isEmpty()) {
-            savePath = "img";
-        }
 
         views = getViews(urls);
 
@@ -109,10 +102,10 @@ public class ImageActivity extends AppCompatActivity {
             textIndex.setText(String.format("%s/%s", currentItem + 1, views.size()));
         }
 
-        viewPager.setAdapter(adapter = new ViewPageAdapter(this, views));
-
+        viewPager.setAdapter(new ViewPageAdapter(this, views));
 
         viewPager.setCurrentItem(currentItem);
+        currentIndex = currentItem;
 
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -121,6 +114,7 @@ public class ImageActivity extends AppCompatActivity {
 
             @Override
             public void onPageSelected(int position) {
+                currentIndex = position;
                 textIndex.setText(String.format("%s/%s", position + 1, views.size()));
                 viewPager.initImageStatus();
                 handler.sendEmptyMessageDelayed(position, 500);
@@ -131,6 +125,22 @@ public class ImageActivity extends AppCompatActivity {
             }
         });
 
+         btnSave = findViewById(R.id.btn_save);
+        if ((currentModel & ImageBuilder.MODEL_SAVE_BTN) == ImageBuilder.MODEL_SAVE_BTN) {
+            btnSave.setVisibility(View.VISIBLE);
+            btnSave.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    currentFile = fileMap.get(currentIndex);
+                    saveImg();
+                }
+            });
+        } else {
+            btnSave.setVisibility(View.GONE);
+        }
+
+
+        // 不再显示提示信息
         //showTip();
     }
 
@@ -139,7 +149,7 @@ public class ImageActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == Permission.REQUEST_EXTERNAL_STORAGE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                saveImg(savePath);
+                saveImg();
             } else {
                 Toast.makeText(this, R.string.storage_permission_fail, Toast.LENGTH_LONG).show();
             }
@@ -161,16 +171,6 @@ public class ImageActivity extends AppCompatActivity {
             }
         }
 
-        if ((currentModel & ImageBuilder.MODEL_DELETE) == ImageBuilder.MODEL_DELETE) {
-            if (preferences.getBoolean(String.valueOf(ImageBuilder.MODEL_DELETE), true)) {
-                new AlertDialog.Builder(this)
-                        .setMessage(R.string.tip_img_del)
-                        .setPositiveButton(R.string.i_know, (dialog, which) ->
-                                preferences.edit().putBoolean(String.valueOf(ImageBuilder.MODEL_DELETE), false).apply()
-                        )
-                        .show();
-            }
-        }
     }
 
     /**
@@ -218,12 +218,14 @@ public class ImageActivity extends AppCompatActivity {
         ArrayList<View> views = new ArrayList<>(1);
         LayoutInflater layoutInflater = LayoutInflater.from(ImageActivity.this);
         if (urls != null) {
+            int index = 0;
             for (String url : urls) {
                 View view = layoutInflater.inflate(R.layout.pinch_image, null);
-                loadImage(view, url);
+                loadImage(view, url, index);
                 final PhotoView img = view.findViewById(R.id.image);
                 img.setOnClickListener(view1 -> finish());
                 views.add(view);
+                index++;
             }
         }
         return views;
@@ -235,7 +237,7 @@ public class ImageActivity extends AppCompatActivity {
      * @param view
      * @param url
      */
-    private void loadImage(View view, String url) {
+    private void loadImage(View view, String url, int index) {
         final PhotoView img = (PhotoView) view.findViewById(R.id.image);
         final ProgressBar progressBar = (ProgressBar) view.findViewById(R.id.progressBar);
 //        img.setMinScale(1.0F);//最小显示比例
@@ -270,15 +272,13 @@ public class ImageActivity extends AppCompatActivity {
                         progressBar.setVisibility(View.GONE);
                         img.setVisibility(View.VISIBLE);
                         try {
-                            InputStream is = new FileInputStream(resource);
-                            BitmapFactory.Options options = new BitmapFactory.Options();
-                            options.inJustDecodeBounds = false;
-                            options.inSampleSize = 1;
-                            Bitmap btp = BitmapFactory.decodeStream(is, null, options);
-                            img.setImageBitmap(btp);
+                            Glide.with(ImageActivity.this)
+                                    .load(resource)
+                                    .into(img);
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            Log.e(TAG, "图片加载失败", e);
                         }
+                        fileMap.put(index, resource);
                         img.setOnLongClickListener(v -> {
                             String[] strs = getItems();
                             if (strs == null)
@@ -288,16 +288,13 @@ public class ImageActivity extends AppCompatActivity {
                                     .setItems(strs, (DialogInterface dialog, int which) -> {
                                         if (getString(R.string.img_save).equals(strs[which])) {
                                             ImageActivity.this.currentFile = resource;
-                                            saveImg(savePath);
-                                        } else if (getString(R.string.img_delete).equals(strs[which])) {
-                                            deleteUrls += finalUrl + ",";
-                                            views.remove(view);
-                                            if (viewPager.getAdapter() != null)
-                                                viewPager.getAdapter().notifyDataSetChanged();
+                                            saveImg();
                                         }
                                     }).show();
                             return false;
                         });
+
+
                     });
                     return false;
                 }
@@ -345,9 +342,6 @@ public class ImageActivity extends AppCompatActivity {
 
     @Override
     public void finish() {
-        Intent intent = new Intent();
-        intent.putExtra(ImageBuilder.MODEL_DELETE + "", deleteUrls.split(","));
-        setResult(RESULT_OK, intent);
         super.finish();
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }
@@ -358,16 +352,13 @@ public class ImageActivity extends AppCompatActivity {
         if ((currentModel & ImageBuilder.MODEL_SAVE) == ImageBuilder.MODEL_SAVE)
             str += getString(R.string.img_save) + ",";
 
-        if ((currentModel & ImageBuilder.MODEL_DELETE) == ImageBuilder.MODEL_DELETE)
-            str += getString(R.string.img_delete) + ",";
-
         if ("".equals(str))
             return null;
 
         return str.split(",");
     }
 
-    private void saveImg(String path) {
+    private void saveImg() {
         if (currentFile == null)
             return;
 
@@ -375,10 +366,10 @@ public class ImageActivity extends AppCompatActivity {
             return;
 
         try {
-            boolean result = FileUtil.saveImageToGallery(this, path, currentFile);
+            boolean result = FileUtil.saveImageToGallery(this, currentFile);
             Toast.makeText(this, result ? getText(R.string.img_save_success) : getText(R.string.img_save_fail), Toast.LENGTH_LONG).show();
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, e.getMessage(), e);
             Toast.makeText(this, getText(R.string.img_save_fail), Toast.LENGTH_LONG).show();
         }
     }
@@ -392,13 +383,12 @@ public class ImageActivity extends AppCompatActivity {
      * @param urls     图片地址数组
      * @param url      当前要展示的图片地址
      */
-    public static void start(Activity activity, String[] urls, String url, int model, String path) {
+    public static void start(Activity activity, String[] urls, String url, int model) {
         IntentMap.clear();
         Intent intent = new Intent();
         intent.putExtra(URLS, IntentMap.set(urls));
         intent.putExtra(CURRENT_URL, IntentMap.set(url));
         intent.putExtra(CURRENT_MODEL, model);
-        intent.putExtra(PATH, path);
         intent.setClass(activity, ImageActivity.class);
         activity.startActivityForResult(intent, REQUEST_CODE);
         activity.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);

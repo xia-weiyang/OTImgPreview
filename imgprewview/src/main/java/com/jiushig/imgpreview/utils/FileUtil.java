@@ -1,20 +1,14 @@
 package com.jiushig.imgpreview.utils;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.media.MediaScannerConnection;
-import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
 import android.provider.MediaStore;
-
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -30,36 +24,30 @@ public class FileUtil {
      * 保存图片
      *
      * @param context
-     * @param path
      * @param bmp
      */
-    public static boolean saveImageToGallery(Context context, String path, Bitmap bmp) {
+    public static boolean saveImageToGallery(Context context, Bitmap bmp) {
         // 首先保存图片
-        File appDir = new File(Environment.getExternalStorageDirectory() + "/" + path);
-        if (!appDir.exists()) {
-            appDir.mkdirs();
-        }
-        String fileName = System.currentTimeMillis() + ".jpg";
-        File file = new File(appDir, fileName);
         try {
+            File appDir = new File(context.getCacheDir() + "/saveImg");
+            if (!appDir.exists()) {
+                appDir.mkdirs();
+            }
+            String fileName = System.currentTimeMillis() + ".jpg";
+            File file = new File(appDir, fileName);
             FileOutputStream fos = new FileOutputStream(file);
             bmp.compress(Bitmap.CompressFormat.JPEG, 100, fos);
             fos.flush();
             fos.close();
-        } catch (IOException e) {
-            Log.e(TAG, e.getMessage(), e);
-            return false;
-        }
 
-        // 其次把文件插入到系统图库
-        try {
             MediaStore.Images.Media.insertImage(context.getContentResolver(),
                     file.getAbsolutePath(), fileName, null);
-        } catch (FileNotFoundException e) {
+            return true;
+        } catch (Exception e) {
             Log.e(TAG, e.getMessage(), e);
         }
 
-        return true;
+        return false;
     }
 
 
@@ -67,20 +55,19 @@ public class FileUtil {
      * 保存图片
      *
      * @param context
-     * @param path
      * @param fileSource
      */
-    public static boolean saveImageToGallery(Context context, String path, File fileSource) {
+    public static boolean saveImageToGallery(Context context, File fileSource) {
         // 首先保存图片
-        File appDir = new File(Environment.getExternalStorageDirectory() + "/" + path);
-        if (!appDir.exists()) {
-            appDir.mkdirs();
-        }
-
-        String fileName = System.currentTimeMillis() + ".jpg";
-        File file = new File(appDir, fileName);
-
         try {
+            File appDir = new File(context.getCacheDir() + "/saveImg");
+            if (!appDir.exists()) {
+                appDir.mkdirs();
+            }
+
+            String fileName = System.currentTimeMillis() + ".jpg";
+            File file = new File(appDir, fileName);
+
             FileOutputStream fosto = new FileOutputStream(file);
             InputStream fosfrom = new FileInputStream(fileSource);
             byte bt[] = new byte[1024];
@@ -90,27 +77,22 @@ public class FileUtil {
             }
             fosfrom.close();
             fosto.close();
-        } catch (IOException e) {
-            Log.e(TAG, e.getMessage(), e);
-            return false;
-        }
 
-        // 其次把文件插入到系统图库
-        try {
+            // 其次把文件插入到系统图库
             MediaStore.Images.Media.insertImage(context.getContentResolver(),
                     file.getAbsolutePath(), fileName, null);
-
 
             // 最后通知图库更新
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) { // 判断SDK版本是不是4.4或者高于4.4
                 String[] paths = new String[]{file.getAbsolutePath()};
                 MediaScannerConnection.scanFile(context, paths, null, null);
             }
+            return true;
 
         } catch (Exception e) {
             Log.e(TAG, e.getMessage(), e);
+            return false;
         }
 
-        return true;
     }
 }

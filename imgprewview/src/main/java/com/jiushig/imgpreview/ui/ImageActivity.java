@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -53,6 +54,7 @@ public class ImageActivity extends AppCompatActivity {
     private static final String CURRENT_URL = "current_url";
     private static final String CURRENT_MODEL = "current_model";
     private static final String TAG = "ImageActivity";
+    private static final String IS_LANDSCAPE = "is_landscape";
 
     private CustomViewPage viewPager;
     private ArrayList<View> views;
@@ -63,6 +65,7 @@ public class ImageActivity extends AppCompatActivity {
     private View btnSave;
 
     private int currentModel;
+    private boolean isLandscape = false;
 
     public static final int REQUEST_CODE = 1356;
 
@@ -81,6 +84,10 @@ public class ImageActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image);
+
+        isLandscape = getIntent().getBooleanExtra(IS_LANDSCAPE, false);
+        setRequestedOrientation(isLandscape ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         preferences = getSharedPreferences("otimg", Context.MODE_PRIVATE);
 
@@ -125,7 +132,7 @@ public class ImageActivity extends AppCompatActivity {
             }
         });
 
-         btnSave = findViewById(R.id.btn_save);
+        btnSave = findViewById(R.id.btn_save);
         if ((currentModel & ImageBuilder.MODEL_SAVE_BTN) == ImageBuilder.MODEL_SAVE_BTN) {
             btnSave.setVisibility(View.VISIBLE);
             btnSave.setOnClickListener(new View.OnClickListener() {
@@ -382,13 +389,16 @@ public class ImageActivity extends AppCompatActivity {
      * @param activity
      * @param urls     图片地址数组
      * @param url      当前要展示的图片地址
+     * @param isLandscape  是否横屏
      */
-    public static void start(Activity activity, String[] urls, String url, int model) {
+    public static void start(Activity activity, String[] urls, String url, int model,
+                             boolean isLandscape) {
         IntentMap.clear();
         Intent intent = new Intent();
         intent.putExtra(URLS, IntentMap.set(urls));
         intent.putExtra(CURRENT_URL, IntentMap.set(url));
         intent.putExtra(CURRENT_MODEL, model);
+        intent.putExtra(IS_LANDSCAPE, isLandscape);
         intent.setClass(activity, ImageActivity.class);
         activity.startActivityForResult(intent, REQUEST_CODE);
         activity.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);

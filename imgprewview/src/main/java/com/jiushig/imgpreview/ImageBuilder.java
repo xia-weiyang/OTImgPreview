@@ -20,6 +20,7 @@ public class ImageBuilder {
     private String currentUrl;
 
     private int model;
+    private boolean isLandscape = false;
 
     public ImageBuilder(Activity activity) {
         this.activity = activity;
@@ -40,6 +41,11 @@ public class ImageBuilder {
         return this;
     }
 
+    public ImageBuilder setLandscape(boolean landscape) {
+        this.isLandscape = landscape;
+        return this;
+    }
+
     public void start() {
         if (urls == null || urls.length <= 0) {
             Toast.makeText(activity, R.string.img_empty, Toast.LENGTH_LONG).show();
@@ -49,6 +55,6 @@ public class ImageBuilder {
         if (currentUrl == null || currentUrl.isEmpty()) {
             currentUrl = urls[0];
         }
-        ImageActivity.start(activity, urls, currentUrl, model);
+        ImageActivity.start(activity, urls, currentUrl, model, isLandscape);
     }
 }

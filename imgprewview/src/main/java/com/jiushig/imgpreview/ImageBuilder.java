@@ -21,6 +21,7 @@ public class ImageBuilder {
 
     private int model;
     private boolean isLandscape = false;
+    private boolean paintWhiteBgForPng = false;
 
     public ImageBuilder(Activity activity) {
         this.activity = activity;
@@ -46,6 +47,17 @@ public class ImageBuilder {
         return this;
     }
 
+    /**
+     * 为png图片添加白色背景
+     *
+     * @param paintWhiteBgForPng 是否添加
+     * @return
+     */
+    public ImageBuilder setPaintWhiteBgForPng(boolean paintWhiteBgForPng) {
+        this.paintWhiteBgForPng = paintWhiteBgForPng;
+        return this;
+    }
+
     public void start() {
         if (urls == null || urls.length <= 0) {
             Toast.makeText(activity, R.string.img_empty, Toast.LENGTH_LONG).show();
@@ -55,6 +67,6 @@ public class ImageBuilder {
         if (currentUrl == null || currentUrl.isEmpty()) {
             currentUrl = urls[0];
         }
-        ImageActivity.start(activity, urls, currentUrl, model, isLandscape);
+        ImageActivity.start(activity, urls, currentUrl, model, isLandscape, paintWhiteBgForPng);
     }
 }

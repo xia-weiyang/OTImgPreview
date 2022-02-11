@@ -2,6 +2,9 @@ package com.jiushig.imgpreview.utils;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.media.MediaScannerConnection;
 import android.os.Build;
 import android.provider.MediaStore;
@@ -94,5 +97,22 @@ public class FileUtil {
             return false;
         }
 
+    }
+
+
+    /**
+     * 给bitmap添加白色背景
+     * @param orginBitmap
+     * @return
+     */
+    public static Bitmap drawWhiteBgBitmap(Bitmap orginBitmap) {
+        Paint paint = new Paint();
+        paint.setColor(Color.WHITE);
+        Bitmap bitmap = Bitmap.createBitmap(orginBitmap.getWidth(),
+                orginBitmap.getHeight(), orginBitmap.getConfig());
+        Canvas canvas = new Canvas(bitmap);
+        canvas.drawRect(0, 0, orginBitmap.getWidth(), orginBitmap.getHeight(), paint);
+        canvas.drawBitmap(orginBitmap, 0, 0, paint);
+        return bitmap;
     }
 }

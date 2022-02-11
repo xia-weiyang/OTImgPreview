@@ -6,6 +6,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -22,7 +24,9 @@ import com.bumptech.glide.RequestBuilder;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.target.Target;
+import com.bumptech.glide.request.transition.Transition;
 import com.github.chrisbanes.photoview.PhotoView;
 import com.jiushig.imgpreview.ImageBuilder;
 import com.jiushig.imgpreview.R;
@@ -61,6 +65,7 @@ public class ImageActivity extends AppCompatActivity {
     private int currentIndex = 0;
     private HashMap<Integer, File> fileMap = new HashMap<>();
     private View btnSave;
+    private boolean paintWhiteBgForPng = false; // 为png图片添加白色背景
 
     private int currentModel;
 
@@ -81,6 +86,8 @@ public class ImageActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image);
+
+        paintWhiteBgForPng = getIntent().getBooleanExtra("paintWhiteBgForPng", false);
 
         preferences = getSharedPreferences("otimg", Context.MODE_PRIVATE);
 
@@ -243,6 +250,8 @@ public class ImageActivity extends AppCompatActivity {
 //        img.setMinScale(1.0F);//最小显示比例
 //        img.setMaxScale(10.0F);//最大显示比例（太大了图片显示会失真，因为一般微博长图的宽度不会太宽）
 
+        boolean isPng = false;  // 是否是png图片
+
         RequestBuilder<File> load = null;
         if (url != null && url.startsWith("data") && url.contains("base64")) {
             try {
@@ -256,7 +265,12 @@ public class ImageActivity extends AppCompatActivity {
         }
 
         if (load != null) {
-            String finalUrl = url;
+            if (paintWhiteBgForPng) {
+                if (url != null && (url.endsWith("png") || url.endsWith("PNG"))) {
+                    isPng = true;
+                }
+            }
+            boolean finalIsPng = isPng;
             load.listener(new RequestListener<File>() {
                 @Override
                 public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<File> target, boolean isFirstResource) {
@@ -273,8 +287,24 @@ public class ImageActivity extends AppCompatActivity {
                         img.setVisibility(View.VISIBLE);
                         try {
                             Glide.with(ImageActivity.this)
+                                    .asBitmap()
                                     .load(resource)
-                                    .into(img);
+                                    .into(new CustomTarget<Bitmap>() {
+                                        @Override
+                                        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                                            try {
+                                                if (finalIsPng && paintWhiteBgForPng) {
+                                                    resource = FileUtil.drawWhiteBgBitmap(resource);
+                                                }
+                                                img.setImageBitmap(resource);
+                                            } catch (Exception ignored) {
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onLoadCleared(@Nullable Drawable placeholder) {
+                                        }
+                                    });
                         } catch (Exception e) {
                             Log.e(TAG, "图片加载失败", e);
                         }
@@ -380,17 +410,19 @@ public class ImageActivity extends AppCompatActivity {
      * 如果有删除 则会在onActivityResult 中返回已删除的url数组
      *
      * @param activity
-     * @param urls        图片地址数组
-     * @param url         当前要展示的图片地址
-     * @param isLandscape 是否横屏
+     * @param urls               图片地址数组
+     * @param url                当前要展示的图片地址
+     * @param isLandscape        是否横屏
+     * @param paintWhiteBgForPng 是否为png图片添加底色
      */
     public static void start(Activity activity, String[] urls, String url, int model,
-                             boolean isLandscape) {
+                             boolean isLandscape, boolean paintWhiteBgForPng) {
         IntentMap.clear();
         Intent intent = new Intent();
         intent.putExtra(URLS, IntentMap.set(urls));
         intent.putExtra(CURRENT_URL, IntentMap.set(url));
         intent.putExtra(CURRENT_MODEL, model);
+        intent.putExtra("paintWhiteBgForPng", paintWhiteBgForPng);
         intent.setClass(activity, isLandscape ? ImageLandscapeActivity.class : ImageActivity.class);
         activity.startActivityForResult(intent, REQUEST_CODE);
         activity.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);

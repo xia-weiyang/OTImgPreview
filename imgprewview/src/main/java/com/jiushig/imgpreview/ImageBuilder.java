@@ -5,6 +5,9 @@ import android.widget.Toast;
 
 import com.jiushig.imgpreview.ui.ImageActivity;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by zk on 2017/11/18.
  */
@@ -22,6 +25,7 @@ public class ImageBuilder {
     private int model;
     private boolean isLandscape = false;
     private boolean paintWhiteBgForPng = false;
+    private HashMap<String, String> headers;
 
     public ImageBuilder(Activity activity) {
         this.activity = activity;
@@ -47,6 +51,11 @@ public class ImageBuilder {
         return this;
     }
 
+    public ImageBuilder setHeaders(HashMap<String, String> headers) {
+        this.headers = headers;
+        return this;
+    }
+
     /**
      * 为png图片添加白色背景
      *
@@ -67,6 +76,6 @@ public class ImageBuilder {
         if (currentUrl == null || currentUrl.isEmpty()) {
             currentUrl = urls[0];
         }
-        ImageActivity.start(activity, urls, currentUrl, model, isLandscape, paintWhiteBgForPng);
+        ImageActivity.start(activity, urls, currentUrl, model, headers, isLandscape, paintWhiteBgForPng);
     }
 }

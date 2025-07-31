@@ -23,6 +23,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestBuilder;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.target.Target;
@@ -39,6 +40,7 @@ import com.jiushig.imgpreview.widget.CustomViewPage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -54,6 +56,7 @@ import androidx.viewpager.widget.ViewPager;
 public class ImageActivity extends AppCompatActivity {
 
     private static final String URLS = "urls";
+    private static final String HEADERS = "headers";
     private static final String CURRENT_URL = "current_url";
     private static final String CURRENT_MODEL = "current_model";
     private static final String TAG = "ImageActivity";
@@ -66,6 +69,7 @@ public class ImageActivity extends AppCompatActivity {
     private HashMap<Integer, File> fileMap = new HashMap<>();
     private View btnSave;
     private boolean paintWhiteBgForPng = false; // 为png图片添加白色背景
+    private HashMap<String, String> headers = null;
 
     private int currentModel;
 
@@ -93,6 +97,12 @@ public class ImageActivity extends AppCompatActivity {
 
         String[] urls = (String[]) IntentMap.get(getIntent().getStringExtra(URLS));
         String currentUrl = (String) IntentMap.get(getIntent().getStringExtra(CURRENT_URL));
+        try {
+            headers = (HashMap<String, String>) IntentMap.get(getIntent().getStringExtra(HEADERS));
+            Log.d(TAG, "headers:" + headers);
+        } catch (Exception ignored) {
+        }
+
         if (currentUrl == null) return;
         if (urls == null) return;
 
@@ -261,7 +271,15 @@ public class ImageActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         } else {
-            load = Glide.with(this).downloadOnly().load(url);
+            load = Glide.with(this).downloadOnly().load(new GlideUrl(url) {
+                @Override
+                public Map<String, String> getHeaders() {
+                    if (headers != null) {
+                        return headers;
+                    }
+                    return super.getHeaders();
+                }
+            });
         }
 
         if (load != null) {
@@ -416,12 +434,14 @@ public class ImageActivity extends AppCompatActivity {
      * @param paintWhiteBgForPng 是否为png图片添加底色
      */
     public static void start(Activity activity, String[] urls, String url, int model,
+                             HashMap<String, String> headers,
                              boolean isLandscape, boolean paintWhiteBgForPng) {
         IntentMap.clear();
         Intent intent = new Intent();
         intent.putExtra(URLS, IntentMap.set(urls));
         intent.putExtra(CURRENT_URL, IntentMap.set(url));
         intent.putExtra(CURRENT_MODEL, model);
+        intent.putExtra(HEADERS, IntentMap.set(headers));
         intent.putExtra("paintWhiteBgForPng", paintWhiteBgForPng);
         intent.setClass(activity, isLandscape ? ImageLandscapeActivity.class : ImageActivity.class);
         activity.startActivityForResult(intent, REQUEST_CODE);
